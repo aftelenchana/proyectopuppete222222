@@ -1,7 +1,8 @@
 const puppeteer = require("puppeteer");
 require("dotenv").config();
 
-const scrapeLogic = async (res) => {
+const scrapeLogic = async (req, res) => {
+
   const browser = await puppeteer.launch({
     args: [
       "--disable-setuid-sandbox",
@@ -14,35 +15,46 @@ const scrapeLogic = async (res) => {
         ? process.env.PUPPETEER_EXECUTABLE_PATH
         : puppeteer.executablePath(),
   });
+
   try {
     const page = await browser.newPage();
 
-    await page.goto("https://developer.chrome.com/");
+    console.log("🚀 Cargando la página de login...");
+    await page.goto("https://srienlinea.sri.gob.ec/sri-en-linea/contribuyente/perfil");
 
-    // Set screen size
-    await page.setViewport({ width: 1080, height: 1024 });
+    await page.waitForSelector("#usuario");
+    await page.type("#usuario", "1801394741001");
 
-    // Type into search box
-    await page.type(".search-box__input", "automate beyond recorder");
+    await page.waitForSelector("#password");
+    await page.type("#password", "MACAra666_");
 
-    // Wait and click on first result
-    const searchResultSelector = ".search-box__link";
-    await page.waitForSelector(searchResultSelector);
-    await page.click(searchResultSelector);
+    await page.click("#kc-login");
+    console.log("✅ Botón de login clickeado");
 
-    // Locate the full title with a unique string
-    const textSelector = await page.waitForSelector(
-      "text/Customize and automate"
-    );
-    const fullTitle = await textSelector.evaluate((el) => el.textContent);
+    await page.waitForNavigation({ waitUntil: "networkidle2" });
 
-    // Print the full title
-    const logStatement = `The title of this blog post is ${fullTitle}`;
-    console.log(logStatement);
-    res.send(logStatement);
+    const loginExitoso = page.url().includes("perfil");
+    if (!loginExitoso) {
+      console.log("❌ Login fallido");
+      res.status(401).json({ success: false, message: "Login fallido" });
+      return;
+    }
+
+    console.log("✅ Login exitoso");
+
+    res.json({
+      success: true,
+      login: "exitoso",
+      mensaje: "Ingreso al perfil del contribuyente correcto",
+      url_actual: page.url(),
+    });
   } catch (e) {
-    console.error(e);
-    res.send(`Something went wrong while running Puppeteer: ${e}`);
+    console.error("❌ Error durante la ejecución de Puppeteer:", e);
+    res.status(500).json({
+      success: false,
+      message: "Algo salió mal al ejecutar Puppeteer",
+      error: e.message,
+    });
   } finally {
     await browser.close();
   }
