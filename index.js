@@ -1,17 +1,19 @@
-const express = require("express");
-const { scrapeLogic } = require("./scrapeLogic");
+const express = require('express');
+const { scrapeLogic } = require('./scrapeLogic');
+
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-const PORT = process.env.PORT || 4000;
+// Middleware para parsear JSON
+app.use(express.json());
 
-app.get("/scrape", (req, res) => {
-  scrapeLogic(res);
-});
+// Ruta POST
+app.post('/login-sri', scrapeLogic);
 
-app.get("/", (req, res) => {
-  res.send("Hola estamos iniciando un servidor para pupeter!");
+app.get('/', (req, res) => {
+  res.send('¡Hola desde Express en Windows!');
 });
 
 app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
+  console.log(`✅ API corriendo en http://localhost:${PORT}`);
 });

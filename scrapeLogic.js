@@ -2,6 +2,14 @@ const puppeteer = require("puppeteer");
 require("dotenv").config();
 
 const scrapeLogic = async (req, res) => {
+  const { identificacion, password, claveAcceso } = req.body;
+
+  if (!identificacion || !password || !claveAcceso) {
+    return res.status(400).json({
+      success: false,
+      message: "Se requieren los parámetros: identificacion, password y claveAcceso",
+    });
+  }
 
   const browser = await puppeteer.launch({
     args: [
@@ -23,10 +31,10 @@ const scrapeLogic = async (req, res) => {
     await page.goto("https://srienlinea.sri.gob.ec/sri-en-linea/contribuyente/perfil");
 
     await page.waitForSelector("#usuario");
-    await page.type("#usuario", "1801394741001");
+    await page.type("#usuario", identificacion);
 
     await page.waitForSelector("#password");
-    await page.type("#password", "MACAra666_");
+    await page.type("#password", password);
 
     await page.click("#kc-login");
     console.log("✅ Botón de login clickeado");
@@ -36,8 +44,7 @@ const scrapeLogic = async (req, res) => {
     const loginExitoso = page.url().includes("perfil");
     if (!loginExitoso) {
       console.log("❌ Login fallido");
-      res.status(401).json({ success: false, message: "Login fallido" });
-      return;
+      return res.status(401).json({ success: false, message: "Login fallido" });
     }
 
     console.log("✅ Login exitoso");
@@ -47,6 +54,7 @@ const scrapeLogic = async (req, res) => {
       login: "exitoso",
       mensaje: "Ingreso al perfil del contribuyente correcto",
       url_actual: page.url(),
+      claveAccesoRecibida: claveAcceso, // Solo para verificar que llegó, no se usa aún
     });
   } catch (e) {
     console.error("❌ Error durante la ejecución de Puppeteer:", e);
