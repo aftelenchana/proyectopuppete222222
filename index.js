@@ -9,7 +9,7 @@ app.get("/scrape", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Render Puppeteer server is up and running!");
+  res.send("Hola estamos iniciando un servidor para pupeter!");
 });
 
 app.listen(PORT, () => {
